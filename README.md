@@ -20,7 +20,7 @@ git clone <URL_DEL_REPOSITORIO>
 cd <NOMBRE_DEL_PROYECTO>
 ```
 
-## 👨🏻‍💻 Instalar el entorno de desarrollo (Antes de ejecutar el programa):
+## 👨🏻‍💻 Instalar el entorno de desarrollo (Antes de hacer cambios en el programa):
 
 1. Crear el entorno de desarrollo:
 
@@ -50,7 +50,7 @@ pip install -r requirements.txt
 pre-commit install
 ```
 
-### 🔨 Configurar y ejecutar con maven
+### 🔨 Configurar y ejecutar el proyecto
 
 ```bash
 mvn clean install
