@@ -5,8 +5,9 @@ import mx.uady.models.JavaClass;
 import mx.uady.repositories.JavaClassRepository;
 
 /*
- * Esta clase representa una fachada para gestionar métricas de código,
- * como el conteo de clases, métodos y líneas físicas de un programa.
+ * Esta clase representa una fachada para gestionar un estado global
+ * o acumulador de todas las métricas relacionadas con el número de
+ * clases, métodos y líneas fisicas del código.
  */
 public class CodeMetricsManager {
   private final JavaClassRepository classRepository;
@@ -19,16 +20,16 @@ public class CodeMetricsManager {
     this.physicalLinesMetricsService = new PhysicalLinesMetricsService(classRepository);
   }
 
-  public void queueClassIfNotExist(String className) {
-    classRepository.registerClass(className);
+  public List<JavaClass> getClasses() {
+    return codeStructuresMetricsService.getAllClasses();
   }
 
-  public List<JavaClass> getClasses() {
-    return classRepository.getAllClasses();
+  public void addClassIfNotExist(String className) {
+    codeStructuresMetricsService.addClassIfNotExist(className);
   }
 
   public void incrementMethodCountInLastClass() {
-    codeStructuresMetricsService.incrementMethodCountForLastClass();
+    codeStructuresMetricsService.incrementMethodCountInLastClass();
   }
 
   public void increaseLineCountForClass(String className) {

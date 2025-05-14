@@ -23,13 +23,13 @@ public class PhysicalLinesMetricsService {
 
     JavaClass targetClass =
         classRepository
-            .findByName(className)
+            .findClassByName(className)
             .orElseThrow(
                 () ->
                     new IllegalStateException(
                         "Clase no encontrada al intentar añadir línea: " + className));
 
-    targetClass.incrementPhysicalLinesCount();
+    targetClass.incrementPhysicalLinesAmount();
   }
 
   /**
@@ -39,7 +39,7 @@ public class PhysicalLinesMetricsService {
    */
   public int calculateTotalLinesOfCode() {
     return classRepository.getAllClasses().stream()
-        .mapToInt(JavaClass::getPhysicalLinesCount)
+        .mapToInt(JavaClass::getPhysicalLinesAmount)
         .sum();
   }
 }

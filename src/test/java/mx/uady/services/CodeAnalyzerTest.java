@@ -70,7 +70,7 @@ class CodeAnalyzerTest {
     codeAnalyzer.processLine(line2);
     codeAnalyzer.processLine(line3);
 
-    assertEquals(1, structCounter.getClasses().get(0).getMethodsCount());
+    assertEquals(1, structCounter.getClasses().get(0).getMethodsAmount());
   }
 
   @Test
@@ -84,6 +84,6 @@ class CodeAnalyzerTest {
     codeAnalyzer.processLine(line2);
     codeAnalyzer.processLine(line3);
 
-    assertEquals(3, structCounter.getClasses().get(0).getPhysicalLinesCount());
+    assertEquals(3, structCounter.getClasses().get(0).getPhysicalLinesAmount());
   }
 }

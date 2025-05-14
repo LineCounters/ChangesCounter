@@ -1,5 +1,8 @@
 package mx.uady.services;
 
+import java.util.List;
+import java.util.Optional;
+import mx.uady.models.JavaClass;
 import mx.uady.repositories.JavaClassRepository;
 
 public class CodeStructuresMetricsService {
@@ -10,18 +13,33 @@ public class CodeStructuresMetricsService {
   }
 
   /**
+   * Obtiene todas las clases registradas en el repositorio.
+   *
+   * @return Lista de clases registradas.
+   */
+  public List<JavaClass> getAllClasses() {
+    return classRepository.getAllClasses();
+  }
+
+  /**
+   * Registra una nueva clase si no existe en el repositorio.
+   *
+   * @param className Nombre de la clase a registrar.
+   */
+  public void addClassIfNotExist(String className) {
+    classRepository.registerClassIfNotExist(className);
+  }
+
+  /**
    * Incrementa el contador de métodos para la última clase registrada.
    *
    * @return true si se logró incrementar, false si no hay clases registradas
    */
-  public boolean incrementMethodCountForLastClass() {
-    return classRepository
-        .getLatestAddedClass()
-        .map(
-            javaClass -> {
-              javaClass.incrementMethodsAmount();
-              return true;
-            })
-        .orElse(false);
+  public void incrementMethodCountInLastClass() {
+    Optional<JavaClass> latestClass = classRepository.getLatestAddedClass();
+
+    if (latestClass.isPresent()) {
+      latestClass.get().incrementMethodsAmount();
+    }
   }
 }

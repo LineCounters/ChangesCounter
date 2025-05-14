@@ -19,31 +19,12 @@ public class JavaClassRepository {
   }
 
   /**
-   * Registra una nueva clase Java si no existe previamente.
-   *
-   * @param className Nombre de la clase a registrar
-   * @return La instancia de JavaClass existente o la recién creada
-   * @throws IllegalArgumentException si el nombre de la clase es nulo
-   */
-  public JavaClass registerClass(String className) {
-    Objects.requireNonNull(className, "El nombre de la clase no puede ser nulo");
-
-    return findByName(className)
-        .orElseGet(
-            () -> {
-              JavaClass newClass = new JavaClass(className);
-              javaClasses.add(newClass);
-              return newClass;
-            });
-  }
-
-  /**
    * Busca una clase por su nombre.
    *
    * @param className Nombre de la clase a buscar
    * @return Optional con la clase si existe, o vacío si no
    */
-  public Optional<JavaClass> findByName(String className) {
+  public Optional<JavaClass> findClassByName(String className) {
     if (className == null) {
       return Optional.empty();
     }
@@ -73,5 +54,24 @@ public class JavaClassRepository {
    */
   public List<JavaClass> getAllClasses() {
     return Collections.unmodifiableList(javaClasses);
+  }
+
+  /**
+   * Registra una nueva clase Java si no existe previamente.
+   *
+   * @param className Nombre de la clase a registrar
+   * @return La instancia de JavaClass existente o la recién creada
+   * @throws IllegalArgumentException si el nombre de la clase es nulo
+   */
+  public JavaClass registerClassIfNotExist(String className) {
+    Objects.requireNonNull(className, "El nombre de la clase no puede ser nulo");
+
+    return findClassByName(className)
+        .orElseGet(
+            () -> {
+              JavaClass newClass = new JavaClass(className);
+              javaClasses.add(newClass);
+              return newClass;
+            });
   }
 }

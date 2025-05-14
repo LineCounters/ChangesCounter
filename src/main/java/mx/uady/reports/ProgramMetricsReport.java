@@ -37,8 +37,8 @@ public class ProgramMetricsReport {
             System.out.printf(
                 " %-40s  %-15d  %-15d %n",
                 javaClass.getClassName(),
-                javaClass.getMethodsCount(),
-                javaClass.getPhysicalLinesCount()));
+                javaClass.getMethodsAmount(),
+                javaClass.getPhysicalLinesAmount()));
 
     System.out.println(LINE_SEPARATOR);
 

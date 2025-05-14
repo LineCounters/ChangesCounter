@@ -2,8 +2,8 @@ package mx.uady.models;
 
 public class JavaClass {
   private String className;
-  private int methodsCount;
-  private int physicalLinesCount;
+  private int methodsAmount;
+  private int physicalLinesAmount;
 
   public JavaClass(String className) {
     if (className == null || className.trim().isEmpty()) {
@@ -11,27 +11,27 @@ public class JavaClass {
     }
 
     this.className = className;
-    this.methodsCount = 0;
-    this.physicalLinesCount = 0;
+    this.methodsAmount = 0;
+    this.physicalLinesAmount = 0;
   }
 
   public String getClassName() {
     return className;
   }
 
-  public int getMethodsCount() {
-    return methodsCount;
+  public int getMethodsAmount() {
+    return methodsAmount;
   }
 
   public void incrementMethodsAmount() {
-    this.methodsCount++;
+    this.methodsAmount++;
   }
 
-  public int getPhysicalLinesCount() {
-    return physicalLinesCount;
+  public int getPhysicalLinesAmount() {
+    return physicalLinesAmount;
   }
 
-  public void incrementPhysicalLinesCount() {
-    this.physicalLinesCount++;
+  public void incrementPhysicalLinesAmount() {
+    this.physicalLinesAmount++;
   }
 }

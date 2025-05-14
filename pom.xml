@@ -7,7 +7,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>mx.uady</groupId>
-    <artifactId>coudecounter</artifactId>
+    <artifactId>changescounter</artifactId>
     <version>1.0.0</version>
 
     <properties>
@@ -29,64 +29,9 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>3.0.0</version>
-                <executions>
-                    <execution>
-                        <id>generate-custom-jre</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <exec executable="jlink">
-                                    <arg value="--module-path" />
-                                    <arg value="${java.home}/jmods" />
-                                    <arg value="--add-modules" />
-                                    <arg value="java.base,java.desktop" />
-                                    <arg value="--output" />
-                                    <arg value="${project.build.directory}/jre" />
-                                </exec>
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.akathist.maven.plugins.launch4j</groupId>
-                <artifactId>launch4j-maven-plugin</artifactId>
-                <version>2.1.1</version>
-                <executions>
-                    <execution>
-                        <id>l4j-clui</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>launch4j</goal>
-                        </goals>
-                        <configuration>
-                            <jar>target/${project.build.finalName}.jar</jar>
-                            <outfile>target/${project.build.finalName}.exe</outfile>
-                            <classPath>
-                                <mainClass>mx.uady.Main</mainClass>
-                            </classPath>
-                            <headerType>console</headerType>
-                            <errTitle>Error</errTitle>
-                            <jre>
-                                <minVersion>17</minVersion>
-                                <jdkPreference>preferJre</jdkPreference>
-                                <path>./jre</path>
-                                <bundledJre64Bit>true</bundledJre64Bit>
-                                <bundledJreAsFallback>false</bundledJreAsFallback>
-                            </jre>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>

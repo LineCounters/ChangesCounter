@@ -2,10 +2,10 @@ package mx.uady.services;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import mx.uady.validators.CodeStructureRecognizer;
-import mx.uady.validators.CodeStructureRecognizerFactory;
-import mx.uady.validators.MethodDeclarationRecognizer;
-import mx.uady.validators.TypeDeclarationRecognizer;
+import mx.uady.recognizers.CodeStructureRecognizer;
+import mx.uady.recognizers.CodeStructureRecognizerFactory;
+import mx.uady.recognizers.MethodDeclarationRecognizer;
+import mx.uady.recognizers.TypeDeclarationRecognizer;
 
 /** Analiza líneas de código Java para contar las clases, los métodos y las líneas físicas. */
 public class CodeAnalyzer {
@@ -152,7 +152,8 @@ public class CodeAnalyzer {
     if (classContextStack.isEmpty() || !classContextStack.peek().equals(className)) {
       classContextStack.push(className);
       classStartBraceLevelStack.push(braceLevel);
-      metricsManager.queueClassIfNotExist(className);
+
+      metricsManager.addClassIfNotExist(className);
       metricsManager.increaseLineCountForClass(className);
     }
   }

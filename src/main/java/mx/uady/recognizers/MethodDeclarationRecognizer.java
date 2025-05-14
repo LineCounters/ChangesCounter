@@ -1,4 +1,4 @@
-package mx.uady.validators;
+package mx.uady.recognizers;
 
 import static mx.uady.configuration.JavaLanguageRegex.ACCESS_MODIFIERS_REGEX_PATTERN;
 import static mx.uady.configuration.JavaLanguageRegex.DATATYPE_DECLARATION_REGEX_PATTERN;

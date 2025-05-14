@@ -25,4 +25,4 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
       - id: no-commit-to-branch
-        args: [--branch, development, --branch, qa, --branch, main]
+        args: [--branch, main]
