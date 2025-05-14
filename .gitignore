@@ -1,0 +1,44 @@
+# Maven build directories
+target/
+
+# IntelliJ IDEA project files
+.idea/
+
+# VSCode project files
+.vscode/
+
+# Eclipse project files (si lo usas)
+.project
+.classpath
+.settings/
+
+# Archivos generados por Maven
+*.log
+
+# Archivos temporales y compilados
+*.class
+*.jar
+*.war
+*.ear
+
+# Archivos específicos de macOS
+.DS_Store
+
+# Archivos específicos de Windows
+Thumbs.db
+
+# Archivos de configuración del sistema operativo
+*.swp
+*.swo
+
+# Archivos de configuración de entorno (si usas variables de entorno)
+.env
+
+# Archivos de JetBrains (si los usas en el proyecto)
+*.iml
+
+# Archivos de Maven wrapper (si estás usando el wrapper de Maven)
+mvnw
+mvnw.cmd
+
+env

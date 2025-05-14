@@ -1,0 +1,39 @@
+name: lines-struct-counter-continuous-integration
+
+on:
+  push:
+    branches:
+      - development
+      - qa
+      - main
+  pull_request:
+    branches:
+      - development
+      - qa
+      - main
+
+jobs:
+  continuous-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
+
+      - name: Run Java linter
+        uses: axel-op/googlejavaformat-action@v4
+        with:
+          args: "--replace"
+          skip-commit: true
+      - name: Print diffs
+        run: git --no-pager diff --exit-code
+
+      - name: Run tests
+        run: |
+          mvn clean test --file pom.xml
