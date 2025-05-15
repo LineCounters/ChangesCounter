@@ -52,29 +52,38 @@ public class ProjectVersionComparison {
 
   private static void compareFileVersions(
       List<String> oldVersionCodeLines, List<String> newVersionCodeLines) {
-    List<String> temporalCopyOfOldVersionCodeLines = new ArrayList<>(oldVersionCodeLines);
-    List<String> temporalCopyOfNewVersionCodeLines = new ArrayList<>(newVersionCodeLines);
 
-    List<String> unchangedLines = new ArrayList<>();
-    List<String> addedLines = new ArrayList<>();
     List<String> deletedLines = new ArrayList<>();
+    List<String> addedLines = new ArrayList<>();
+    List<String> unchangedLines = new ArrayList<>();
 
-    // Detectar líneas sin cambios y lineas añadidas
-    for (String line : newVersionCodeLines) {
-      if (temporalCopyOfOldVersionCodeLines.contains(line)) {
-        temporalCopyOfOldVersionCodeLines.remove(line);
-        unchangedLines.add(line);
-      } else {
-        addedLines.add(line);
+    Set<String> oldLinesSet = new HashSet<>(oldVersionCodeLines);
+    Set<String> newLinesSet = new HashSet<>(newVersionCodeLines);
+
+    int minSize = Math.min(oldVersionCodeLines.size(), newVersionCodeLines.size());
+    for (int i = 0; i < minSize; i++) {
+      if (oldVersionCodeLines.get(i).equals(newVersionCodeLines.get(i))) {
+        unchangedLines.add(oldVersionCodeLines.get(i));
       }
     }
 
-    // Detectar líneas eliminadas
-    for (String line : oldVersionCodeLines) {
-      if (temporalCopyOfNewVersionCodeLines.contains(line)) {
-        temporalCopyOfNewVersionCodeLines.remove(line); // Ya fue tratada como línea sin cambios
-      } else {
+    for (int i = 0; i < oldVersionCodeLines.size(); i++) {
+      String line = oldVersionCodeLines.get(i);
+      if (newLinesSet.contains(line)
+          && (i >= newVersionCodeLines.size() || !line.equals(newVersionCodeLines.get(i)))) {
         deletedLines.add(line);
+      } else if (!newLinesSet.contains(line)) {
+        deletedLines.add(line);
+      }
+    }
+
+    for (int i = 0; i < newVersionCodeLines.size(); i++) {
+      String line = newVersionCodeLines.get(i);
+      if (oldLinesSet.contains(line)
+          && (i >= oldVersionCodeLines.size() || !line.equals(oldVersionCodeLines.get(i)))) {
+        addedLines.add(line);
+      } else if (!oldLinesSet.contains(line)) {
+        addedLines.add(line);
       }
     }
 
@@ -88,12 +97,12 @@ public class ProjectVersionComparison {
     VersionsComparisonReport.addLineToReport("=== VERSION ANTERIOR ===");
     List<String> temporalCopyOfDeletedLines = new ArrayList<>(deletedLines);
 
-    for (String line : oldVersionCodeLines) {
-      if (temporalCopyOfDeletedLines.contains(line)) {
-        VersionsComparisonReport.addLineToReport(line + " // - [BORRADA]");
-        temporalCopyOfDeletedLines.remove(line);
+    for (String lineInOldVersion : oldVersionCodeLines) {
+      if (temporalCopyOfDeletedLines.contains(lineInOldVersion)) {
+        VersionsComparisonReport.addLineToReport(lineInOldVersion + " // - [ELIMINADA]");
+        temporalCopyOfDeletedLines.remove(lineInOldVersion);
       } else {
-        VersionsComparisonReport.addLineToReport(line);
+        VersionsComparisonReport.addLineToReport(lineInOldVersion);
       }
     }
   }
