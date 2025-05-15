@@ -99,10 +99,16 @@ public class ProjectVersionComparison {
 
     for (String lineInOldVersion : oldVersionCodeLines) {
       if (temporalCopyOfDeletedLines.contains(lineInOldVersion)) {
-        VersionsComparisonReport.addLineToReport(lineInOldVersion + " // - [ELIMINADA]");
+        List<String> wrapped = wrapLine(lineInOldVersion, 80);
+        for (int i = 0; i < wrapped.size(); i++) {
+          String suffix = (i == wrapped.size() - 1) ? " // - [ELIMINADA]" : "";
+          VersionsComparisonReport.addLineToReport(wrapped.get(i) + suffix);
+        }
         temporalCopyOfDeletedLines.remove(lineInOldVersion);
       } else {
-        VersionsComparisonReport.addLineToReport(lineInOldVersion);
+        for (String wrapped : wrapLine(lineInOldVersion, 80)) {
+          VersionsComparisonReport.addLineToReport(wrapped);
+        }
       }
     }
   }
@@ -126,15 +132,20 @@ public class ProjectVersionComparison {
           }
         }
 
-        if (isModified) {
-          VersionsComparisonReport.addLineToReport(lineInNewVersion + " // ≈ [MODIFICADA]");
-        } else {
-          VersionsComparisonReport.addLineToReport(lineInNewVersion + " // + [NUEVA]");
+        List<String> wrapped = wrapLine(lineInNewVersion, 80);
+        for (int i = 0; i < wrapped.size(); i++) {
+          String suffix =
+              (i == wrapped.size() - 1)
+                  ? (isModified ? " // ≈ [MODIFICADA]" : " // + [NUEVA]")
+                  : "";
+          VersionsComparisonReport.addLineToReport(wrapped.get(i) + suffix);
         }
 
         temporalCopyOfAddedLines.remove(lineInNewVersion);
       } else {
-        VersionsComparisonReport.addLineToReport(lineInNewVersion);
+        for (String wrapped : wrapLine(lineInNewVersion, 80)) {
+          VersionsComparisonReport.addLineToReport(wrapped);
+        }
       }
     }
   }
@@ -146,6 +157,16 @@ public class ProjectVersionComparison {
     VersionsComparisonReport.addLineToReport("Líneas añadidas: " + addedLinesCount);
     VersionsComparisonReport.addLineToReport("Líneas eliminadas: " + deletedLinesCount);
     VersionsComparisonReport.addLineToReport("- - - - - - - -");
+  }
+
+  private static List<String> wrapLine(String line, int maxLength) {
+    List<String> result = new ArrayList<>();
+    while (line.length() > maxLength) {
+      result.add(line.substring(0, maxLength));
+      line = line.substring(maxLength);
+    }
+    result.add(line);
+    return result;
   }
 
   private ProjectVersionComparison() {}
