@@ -31,7 +31,8 @@ public class ProjectVersionComparison {
       Path oldVersionFilePath = oldVersionFiles.get(relativePath);
       Path newVersionFilePath = newVersionFiles.get(relativePath);
 
-      VersionsComparisonReport.addLineToReport("=== Comparando archivo: " + relativePath + " ===");
+      VersionsComparisonReport.addLineToReport(
+          "=== Comparando archivo: " + relativePath + " ===" + System.lineSeparator());
 
       if (oldVersionFilePath != null && newVersionFilePath != null) {
         List<String> oldVersionCodeLines = Files.readAllLines(oldVersionFilePath);
@@ -135,6 +136,7 @@ public class ProjectVersionComparison {
     VersionsComparisonReport.addLineToReport("Líneas sin cambios: " + unchangedLinesCount);
     VersionsComparisonReport.addLineToReport("Líneas añadidas: " + addedLinesCount);
     VersionsComparisonReport.addLineToReport("Líneas eliminadas: " + deletedLinesCount);
+    VersionsComparisonReport.addLineToReport("- - - - - - - -");
   }
 
   private ProjectVersionComparison() {}

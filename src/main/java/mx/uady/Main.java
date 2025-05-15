@@ -19,6 +19,7 @@ public class Main {
       ProjectVersionComparison.compareProjectVersions(oldVersionPath, newVersionPath);
 
       CodeMetricsCollector.summarizeCodeMetrics(oldVersionPath);
+
       CodeMetricsCollector.summarizeCodeMetrics(newVersionPath);
     } catch (Exception exception) {
       logger.severe("Error: " + exception.getMessage());

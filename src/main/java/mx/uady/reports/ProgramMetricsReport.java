@@ -42,6 +42,6 @@ public class ProgramMetricsReport {
 
     System.out.println(LINE_SEPARATOR);
 
-    System.out.println("Total de líneas físicas de código: " + totalPhysicalLinesInProgram);
+    System.out.println("Total de líneas físicas de código: " + totalPhysicalLinesInProgram + "\n");
   }
 }
