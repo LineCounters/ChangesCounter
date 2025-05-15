@@ -20,7 +20,7 @@ class ProjectVersionComparisonTest {
   @AfterEach
   void cleanUp() throws IOException {
     if (Files.exists(testDir)) {
-      Files.walk(testDir).map(Path::toFile).forEach(file -> file.delete());
+      Files.walk(testDir).map(Path::toFile).forEach(java.io.File::delete);
     }
     Files.deleteIfExists(Paths.get("versions_comparison_report.txt"));
   }
@@ -34,15 +34,25 @@ class ProjectVersionComparisonTest {
     Files.createDirectories(oldVersion);
     Files.createDirectories(newVersion);
 
-    Files.write(oldVersion.resolve("Test.java"), List.of("linea1", "linea2", "linea3"));
-    Files.write(newVersion.resolve("Test.java"), List.of("linea1", "linea3", "linea4"));
+    Files.write(
+        oldVersion.resolve("Test.java"),
+        List.of("public class Test {", "  public void methodA() {", "    int a = 1;", "  }", "}"));
+    Files.write(
+        newVersion.resolve("Test.java"),
+        List.of(
+            "public class Test {",
+            "  public void methodA() {",
+            "    int b = 2;",
+            "  }",
+            "  public void methodB() {}",
+            "}"));
 
     ProjectVersionComparison.compareProjectVersions(oldVersion.toString(), newVersion.toString());
 
     List<String> reportLines = Files.readAllLines(Paths.get("versions_comparison_report.txt"));
-    assertTrue(reportLines.contains("Líneas sin cambios: 1"));
+    assertTrue(reportLines.contains("Líneas sin cambios: 3"));
+    assertTrue(reportLines.contains("Líneas añadidas: 3"));
     assertTrue(reportLines.contains("Líneas eliminadas: 2"));
-    assertTrue(reportLines.contains("Líneas añadidas: 2"));
   }
 
   @Test
@@ -54,15 +64,29 @@ class ProjectVersionComparisonTest {
     Files.createDirectories(oldVersion);
     Files.createDirectories(newVersion);
 
-    Files.write(oldVersion.resolve("Test.java"), List.of("linea1", "linea2", "linea3"));
-    Files.write(newVersion.resolve("Test.java"), List.of("linea3", "linea1", "linea2"));
+    Files.write(
+        oldVersion.resolve("Test.java"),
+        List.of(
+            "public class Test {",
+            "  public void methodA() {}",
+            "  public void methodB() {}",
+            "  public void methodC() {}",
+            "}"));
+    Files.write(
+        newVersion.resolve("Test.java"),
+        List.of(
+            "public class Test {",
+            "  public void methodC() {}",
+            "  public void methodA() {}",
+            "  public void methodB() {}",
+            "}"));
 
     ProjectVersionComparison.compareProjectVersions(oldVersion.toString(), newVersion.toString());
 
     List<String> reportLines = Files.readAllLines(Paths.get("versions_comparison_report.txt"));
-    assertTrue(reportLines.contains("linea3 // ≈ [MODIFICADA]"));
-    assertTrue(reportLines.contains("linea1 // ≈ [MODIFICADA]"));
-    assertTrue(reportLines.contains("linea2 // ≈ [MODIFICADA]"));
+    assertTrue(reportLines.contains("  public void methodC() {} // ≈ [MODIFICADA]"));
+    assertTrue(reportLines.contains("  public void methodA() {} // ≈ [MODIFICADA]"));
+    assertTrue(reportLines.contains("  public void methodB() {} // ≈ [MODIFICADA]"));
   }
 
   @Test
@@ -74,8 +98,12 @@ class ProjectVersionComparisonTest {
     Files.createDirectories(oldVersion);
     Files.createDirectories(newVersion);
 
-    Files.write(oldVersion.resolve("OldFile.java"), List.of("linea1", "linea2"));
-    Files.write(newVersion.resolve("NewFile.java"), List.of("linea3", "linea4"));
+    Files.write(
+        oldVersion.resolve("OldFile.java"),
+        List.of("public class OldFile {", "  public void oldMethod() {}", "}"));
+    Files.write(
+        newVersion.resolve("NewFile.java"),
+        List.of("public class NewFile {", "  public void newMethod() {}", "}"));
 
     ProjectVersionComparison.compareProjectVersions(oldVersion.toString(), newVersion.toString());
 
