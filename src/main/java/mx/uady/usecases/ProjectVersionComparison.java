@@ -1,5 +1,6 @@
 package mx.uady.usecases;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -7,14 +8,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import mx.uady.exceptions.FolderNotFoundException;
+import mx.uady.exceptions.JavaFilesNotFoundInPathException;
 import mx.uady.reports.VersionsComparisonReport;
 import mx.uady.utils.JavaFilesCollector;
+import mx.uady.utils.LevenshteinDistance;
 
 public class ProjectVersionComparison {
-  private static final StringBuilder reportBuilder = new StringBuilder();
-
   public static void compareProjectVersions(
-      String oldVersionFolderPath, String newVersionFolderPath) throws Exception {
+      String oldVersionFolderPath, String newVersionFolderPath)
+      throws FolderNotFoundException, JavaFilesNotFoundInPathException, IOException {
     Map<String, Path> oldVersionFiles =
         JavaFilesCollector.getJavaFilePathsByFolderPath(oldVersionFolderPath);
     Map<String, Path> newVersionFiles =
@@ -28,7 +31,7 @@ public class ProjectVersionComparison {
       Path oldVersionFilePath = oldVersionFiles.get(relativePath);
       Path newVersionFilePath = newVersionFiles.get(relativePath);
 
-      reportBuilder.append("\n--- Comparando archivo: " + relativePath + " ---");
+      VersionsComparisonReport.addLineToReport("=== Comparando archivo: " + relativePath + " ===");
 
       if (oldVersionFilePath != null && newVersionFilePath != null) {
         List<String> oldVersionCodeLines = Files.readAllLines(oldVersionFilePath);
@@ -36,13 +39,14 @@ public class ProjectVersionComparison {
 
         compareFileVersions(oldVersionCodeLines, newVersionCodeLines);
       } else if (oldVersionFilePath != null) {
-        reportBuilder.append("\nArchivo eliminado en la nueva versión: " + relativePath);
+        VersionsComparisonReport.addLineToReport(
+            "Archivo eliminado en la nueva versión: " + relativePath);
       } else {
-        reportBuilder.append("\nArchivo nuevo en la nueva versión: " + relativePath);
+        VersionsComparisonReport.addLineToReport("Archivo nuevo: " + relativePath);
       }
     }
 
-    VersionsComparisonReport.writeToFile(reportBuilder, "versions_comparison_report.txt");
+    VersionsComparisonReport.writeReportToFile("versions_comparison_report.txt");
   }
 
   private static void compareFileVersions(
@@ -73,12 +77,65 @@ public class ProjectVersionComparison {
       }
     }
 
-    VersionsComparisonReport.appendComparison(
-        oldVersionCodeLines,
-        newVersionCodeLines,
-        unchangedLines,
-        addedLines,
-        deletedLines,
-        reportBuilder);
+    addOldFileVersionToReport(oldVersionCodeLines, deletedLines);
+    addNewFileVersionToReport(oldVersionCodeLines, newVersionCodeLines, addedLines);
+    addSummaryToReport(unchangedLines.size(), addedLines.size(), deletedLines.size());
   }
+
+  private static void addOldFileVersionToReport(
+      List<String> oldVersionCodeLines, List<String> deletedLines) {
+    VersionsComparisonReport.addLineToReport("=== VERSION ANTERIOR ===");
+    List<String> temporalCopyOfDeletedLines = new ArrayList<>(deletedLines);
+
+    for (String line : oldVersionCodeLines) {
+      if (temporalCopyOfDeletedLines.contains(line)) {
+        VersionsComparisonReport.addLineToReport(line + " // - [BORRADA]");
+        temporalCopyOfDeletedLines.remove(line);
+      } else {
+        VersionsComparisonReport.addLineToReport(line);
+      }
+    }
+  }
+
+  private static void addNewFileVersionToReport(
+      List<String> oldVersionCodeLines, List<String> newVersionCodeLines, List<String> addedLines) {
+    VersionsComparisonReport.addLineToReport("=== VERSION ACTUAL ===");
+    List<String> temporalCopyOfAddedLines = new ArrayList<>(addedLines);
+
+    for (String lineInNewVersion : newVersionCodeLines) {
+      if (temporalCopyOfAddedLines.contains(lineInNewVersion)) {
+        boolean isModified = false;
+
+        for (String lineInOldVersion : oldVersionCodeLines) {
+          double levenshteinSimilarity =
+              LevenshteinDistance.calculateSimilarity(lineInNewVersion, lineInOldVersion);
+
+          if (levenshteinSimilarity >= 0.7) {
+            isModified = true;
+            break;
+          }
+        }
+
+        if (isModified) {
+          VersionsComparisonReport.addLineToReport(lineInNewVersion + " // ≈ [MODIFICADA]");
+        } else {
+          VersionsComparisonReport.addLineToReport(lineInNewVersion + " // + [NUEVA]");
+        }
+
+        temporalCopyOfAddedLines.remove(lineInNewVersion);
+      } else {
+        VersionsComparisonReport.addLineToReport(lineInNewVersion);
+      }
+    }
+  }
+
+  private static void addSummaryToReport(
+      int unchangedLinesCount, int addedLinesCount, int deletedLinesCount) {
+    VersionsComparisonReport.addLineToReport("--- RESUMEN ---");
+    VersionsComparisonReport.addLineToReport("Líneas sin cambios: " + unchangedLinesCount);
+    VersionsComparisonReport.addLineToReport("Líneas añadidas: " + addedLinesCount);
+    VersionsComparisonReport.addLineToReport("Líneas eliminadas: " + deletedLinesCount);
+  }
+
+  private ProjectVersionComparison() {}
 }

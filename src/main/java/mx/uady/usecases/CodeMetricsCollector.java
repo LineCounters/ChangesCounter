@@ -1,9 +1,12 @@
 package mx.uady.usecases;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import mx.uady.exceptions.FolderNotFoundException;
+import mx.uady.exceptions.JavaFilesNotFoundInPathException;
 import mx.uady.models.JavaClass;
 import mx.uady.reports.ProgramMetricsReport;
 import mx.uady.services.CodeAnalyzer;
@@ -12,7 +15,8 @@ import mx.uady.utils.JavaFileSanitizer;
 import mx.uady.utils.JavaFilesCollector;
 
 public class CodeMetricsCollector {
-  public static void summarizeCodeMetrics(String folderPath) throws Exception {
+  public static void summarizeCodeMetrics(String folderPath)
+      throws FolderNotFoundException, JavaFilesNotFoundInPathException, IOException {
     CodeMetricsManager metricsManager = new CodeMetricsManager();
 
     Map<String, Path> javaFilePaths = JavaFilesCollector.getJavaFilePathsByFolderPath(folderPath);
@@ -39,4 +43,6 @@ public class CodeMetricsCollector {
 
     report.printReport();
   }
+
+  private CodeMetricsCollector() {}
 }
