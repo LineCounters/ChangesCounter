@@ -1,4 +1,4 @@
-name: lines-struct-counter-continuous-integration
+name: changes-counter-continuous-integration
 
 on:
   push:
