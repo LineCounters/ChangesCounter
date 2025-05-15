@@ -3,7 +3,7 @@ package mx.uady;
 import java.util.Scanner;
 import java.util.logging.Logger;
 import mx.uady.usecases.CodeMetricsCollector;
-import mx.uady.usecases.ProjectVersionComparision;
+import mx.uady.usecases.ProjectVersionComparison;
 
 public class Main {
   public static void main(String[] args) {
@@ -16,7 +16,7 @@ public class Main {
       logger.info("Ingresa la ruta de la carpeta de la nueva versión: ");
       String newVersionPath = scanner.nextLine();
 
-      ProjectVersionComparision.compareProjectVersions(oldVersionPath, newVersionPath);
+      ProjectVersionComparison.compareProjectVersions(oldVersionPath, newVersionPath);
 
       CodeMetricsCollector.summarizeCodeMetrics(oldVersionPath);
       CodeMetricsCollector.summarizeCodeMetrics(newVersionPath);
