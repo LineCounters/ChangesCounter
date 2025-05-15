@@ -6,7 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 public class VersionsComparisonReport {
-  private static StringBuilder reportBuilder;
+  private static StringBuilder reportBuilder = new StringBuilder();
 
   public static void addLineToReport(String line) {
     reportBuilder.append(line).append(System.lineSeparator());
