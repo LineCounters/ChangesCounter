@@ -50,15 +50,15 @@ public class ProjectVersionComparison {
     VersionsComparisonReport.writeReportToFile("versions_comparison_report.txt");
   }
 
-  private static void compareFileVersions(
+  static void compareFileVersions(
       List<String> oldVersionCodeLines, List<String> newVersionCodeLines) {
 
     List<String> deletedLines = new ArrayList<>();
     List<String> addedLines = new ArrayList<>();
     List<String> unchangedLines = new ArrayList<>();
 
-    Set<String> oldLinesSet = new HashSet<>(oldVersionCodeLines);
-    Set<String> newLinesSet = new HashSet<>(newVersionCodeLines);
+    List<String> oldLinesList = new ArrayList<>(oldVersionCodeLines);
+    List<String> newLinesList = new ArrayList<>(newVersionCodeLines);
 
     int minSize = Math.min(oldVersionCodeLines.size(), newVersionCodeLines.size());
     for (int i = 0; i < minSize; i++) {
@@ -69,20 +69,20 @@ public class ProjectVersionComparison {
 
     for (int i = 0; i < oldVersionCodeLines.size(); i++) {
       String line = oldVersionCodeLines.get(i);
-      if (newLinesSet.contains(line)
+      if (newLinesList.contains(line)
           && (i >= newVersionCodeLines.size() || !line.equals(newVersionCodeLines.get(i)))) {
         deletedLines.add(line);
-      } else if (!newLinesSet.contains(line)) {
+      } else if (!newLinesList.contains(line)) {
         deletedLines.add(line);
       }
     }
 
     for (int i = 0; i < newVersionCodeLines.size(); i++) {
       String line = newVersionCodeLines.get(i);
-      if (oldLinesSet.contains(line)
+      if (oldLinesList.contains(line)
           && (i >= oldVersionCodeLines.size() || !line.equals(oldVersionCodeLines.get(i)))) {
         addedLines.add(line);
-      } else if (!oldLinesSet.contains(line)) {
+      } else if (!oldLinesList.contains(line)) {
         addedLines.add(line);
       }
     }
