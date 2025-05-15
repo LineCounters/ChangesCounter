@@ -1,61 +1,74 @@
 package mx.uady.reports;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import mx.uady.utils.LevenshteinDistance;
 
 public class VersionsComparisonReport {
-  public static void printFilesComparison(
+  public static void appendComparison(
       List<String> oldVersionCodeLines,
       List<String> newVersionCodeLines,
       List<String> unchangedLines,
       List<String> addedLines,
-      List<String> deletedLines) {
-
-    System.out.println("=== VERSION ANTERIOR ===");
-    List<String> temporalCopyOfDeletedLines = new ArrayList<>(deletedLines);
+      List<String> deletedLines,
+      StringBuilder reportBuilder) {
+    reportBuilder.append("\n=== VERSION ANTERIOR ===\n");
+    List<String> deletedCopy = new ArrayList<>(deletedLines);
 
     for (String line : oldVersionCodeLines) {
-      if (temporalCopyOfDeletedLines.contains(line)) {
-        System.out.println(line + " // - [BORRADA]");
-        temporalCopyOfDeletedLines.remove(line);
+      if (deletedCopy.contains(line)) {
+        reportBuilder.append(line).append(" // - [BORRADA]\n");
+        deletedCopy.remove(line);
       } else {
-        System.out.println(line);
+        reportBuilder.append(line).append("\n");
       }
     }
 
-    System.out.println("\n=== VERSION ACTUAL ===");
-    List<String> temporalCopyOfAddedLines = new ArrayList<>(addedLines);
+    reportBuilder.append("\n=== VERSION ACTUAL ===\n");
+    List<String> addedCopy = new ArrayList<>(addedLines);
 
-    for (String lineInNewVersion : newVersionCodeLines) {
-      if (temporalCopyOfAddedLines.contains(lineInNewVersion)) {
+    for (String newLine : newVersionCodeLines) {
+      if (addedCopy.contains(newLine)) {
         boolean isModified = false;
-
-        for (String lineInOldVersion : oldVersionCodeLines) {
-          double levenshteinSimilarity =
-              LevenshteinDistance.calculateSimilarity(lineInNewVersion, lineInOldVersion);
-
-          if (levenshteinSimilarity >= 0.7) {
+        for (String oldLine : oldVersionCodeLines) {
+          double similarity = LevenshteinDistance.calculateSimilarity(newLine, oldLine);
+          if (similarity >= 0.7) {
             isModified = true;
             break;
           }
         }
-
         if (isModified) {
-          System.out.println(lineInNewVersion + " // ≈ [MODIFICADA]");
+          reportBuilder.append(newLine).append(" // ≈ [MODIFICADA]\n");
         } else {
-          System.out.println(lineInNewVersion + " // + [NUEVA]");
+          reportBuilder.append(newLine).append(" // + [NUEVA]\n");
         }
-
-        temporalCopyOfAddedLines.remove(lineInNewVersion);
+        addedCopy.remove(newLine);
       } else {
-        System.out.println(lineInNewVersion);
+        reportBuilder.append(newLine).append("\n");
       }
     }
 
-    System.out.println("\n--- RESUMEN ---");
-    System.out.println("Líneas sin cambios: " + unchangedLines.size());
-    System.out.println("Líneas añadidas: " + addedLines.size());
-    System.out.println("Líneas eliminadas: " + deletedLines.size());
+    reportBuilder.append("\n--- RESUMEN ---\n");
+    reportBuilder.append("Líneas sin cambios: ").append(unchangedLines.size()).append("\n");
+    reportBuilder.append("Líneas añadidas: ").append(addedLines.size()).append("\n");
+    reportBuilder.append("Líneas eliminadas: ").append(deletedLines.size()).append("\n\n");
+  }
+
+  public static void writeToFile(StringBuilder reportBuilder, String outputFilePath) {
+    try {
+      File outputFile = new File(outputFilePath);
+
+      try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
+        writer.write(reportBuilder.toString());
+      }
+
+      System.out.println("Reporte de cambios generado: " + outputFile.getAbsolutePath() + "\n");
+    } catch (IOException e) {
+      System.err.println("Error al escribir el reporte: " + e.getMessage() + "\n");
+    }
   }
 }
