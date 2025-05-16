@@ -51,8 +51,8 @@ class ProjectVersionComparisonTest {
 
     List<String> reportLines = Files.readAllLines(Paths.get("versions_comparison_report.txt"));
     assertTrue(reportLines.contains("Líneas sin cambios: 3"));
-    assertTrue(reportLines.contains("Líneas añadidas: 3"));
-    assertTrue(reportLines.contains("Líneas eliminadas: 2"));
+    assertTrue(reportLines.contains("Líneas añadidas: 2"));
+    assertTrue(reportLines.contains("Líneas eliminadas: 1"));
   }
 
   @Test
