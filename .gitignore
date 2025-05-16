@@ -1,6 +1,10 @@
 # Maven build directories
 target/
 
+# Archivos de test
+test_versions/
+test/newVersionPath/
+test/oldVersionPath/
 # IntelliJ IDEA project files
 .idea/
 

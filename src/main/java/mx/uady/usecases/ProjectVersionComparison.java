@@ -50,31 +50,40 @@ public class ProjectVersionComparison {
     VersionsComparisonReport.writeReportToFile("versions_comparison_report.txt");
   }
 
-  private static void compareFileVersions(
+  static void compareFileVersions(
       List<String> oldVersionCodeLines, List<String> newVersionCodeLines) {
-    List<String> temporalCopyOfOldVersionCodeLines = new ArrayList<>(oldVersionCodeLines);
-    List<String> temporalCopyOfNewVersionCodeLines = new ArrayList<>(newVersionCodeLines);
 
-    List<String> unchangedLines = new ArrayList<>();
-    List<String> addedLines = new ArrayList<>();
     List<String> deletedLines = new ArrayList<>();
+    List<String> addedLines = new ArrayList<>();
+    List<String> unchangedLines = new ArrayList<>();
 
-    // Detectar líneas sin cambios y lineas añadidas
-    for (String line : newVersionCodeLines) {
-      if (temporalCopyOfOldVersionCodeLines.contains(line)) {
-        temporalCopyOfOldVersionCodeLines.remove(line);
-        unchangedLines.add(line);
-      } else {
-        addedLines.add(line);
+    List<String> oldLinesList = new ArrayList<>(oldVersionCodeLines);
+    List<String> newLinesList = new ArrayList<>(newVersionCodeLines);
+
+    int minSize = Math.min(oldVersionCodeLines.size(), newVersionCodeLines.size());
+    for (int i = 0; i < minSize; i++) {
+      if (oldVersionCodeLines.get(i).equals(newVersionCodeLines.get(i))) {
+        unchangedLines.add(oldVersionCodeLines.get(i));
       }
     }
 
-    // Detectar líneas eliminadas
-    for (String line : oldVersionCodeLines) {
-      if (temporalCopyOfNewVersionCodeLines.contains(line)) {
-        temporalCopyOfNewVersionCodeLines.remove(line); // Ya fue tratada como línea sin cambios
-      } else {
+    for (int i = 0; i < oldVersionCodeLines.size(); i++) {
+      String line = oldVersionCodeLines.get(i);
+      if (newLinesList.contains(line)
+          && (i >= newVersionCodeLines.size() || !line.equals(newVersionCodeLines.get(i)))) {
         deletedLines.add(line);
+      } else if (!newLinesList.contains(line)) {
+        deletedLines.add(line);
+      }
+    }
+
+    for (int i = 0; i < newVersionCodeLines.size(); i++) {
+      String line = newVersionCodeLines.get(i);
+      if (oldLinesList.contains(line)
+          && (i >= oldVersionCodeLines.size() || !line.equals(oldVersionCodeLines.get(i)))) {
+        addedLines.add(line);
+      } else if (!oldLinesList.contains(line)) {
+        addedLines.add(line);
       }
     }
 
@@ -88,12 +97,18 @@ public class ProjectVersionComparison {
     VersionsComparisonReport.addLineToReport("=== VERSION ANTERIOR ===");
     List<String> temporalCopyOfDeletedLines = new ArrayList<>(deletedLines);
 
-    for (String line : oldVersionCodeLines) {
-      if (temporalCopyOfDeletedLines.contains(line)) {
-        VersionsComparisonReport.addLineToReport(line + " // - [BORRADA]");
-        temporalCopyOfDeletedLines.remove(line);
+    for (String lineInOldVersion : oldVersionCodeLines) {
+      if (temporalCopyOfDeletedLines.contains(lineInOldVersion)) {
+        List<String> wrapped = wrapLine(lineInOldVersion, 80);
+        for (int i = 0; i < wrapped.size(); i++) {
+          String suffix = (i == wrapped.size() - 1) ? " // - [ELIMINADA]" : "";
+          VersionsComparisonReport.addLineToReport(wrapped.get(i) + suffix);
+        }
+        temporalCopyOfDeletedLines.remove(lineInOldVersion);
       } else {
-        VersionsComparisonReport.addLineToReport(line);
+        for (String wrapped : wrapLine(lineInOldVersion, 80)) {
+          VersionsComparisonReport.addLineToReport(wrapped);
+        }
       }
     }
   }
@@ -117,15 +132,20 @@ public class ProjectVersionComparison {
           }
         }
 
-        if (isModified) {
-          VersionsComparisonReport.addLineToReport(lineInNewVersion + " // ≈ [MODIFICADA]");
-        } else {
-          VersionsComparisonReport.addLineToReport(lineInNewVersion + " // + [NUEVA]");
+        List<String> wrapped = wrapLine(lineInNewVersion, 80);
+        for (int i = 0; i < wrapped.size(); i++) {
+          String suffix =
+              (i == wrapped.size() - 1)
+                  ? (isModified ? " // ≈ [MODIFICADA]" : " // + [NUEVA]")
+                  : "";
+          VersionsComparisonReport.addLineToReport(wrapped.get(i) + suffix);
         }
 
         temporalCopyOfAddedLines.remove(lineInNewVersion);
       } else {
-        VersionsComparisonReport.addLineToReport(lineInNewVersion);
+        for (String wrapped : wrapLine(lineInNewVersion, 80)) {
+          VersionsComparisonReport.addLineToReport(wrapped);
+        }
       }
     }
   }
@@ -137,6 +157,16 @@ public class ProjectVersionComparison {
     VersionsComparisonReport.addLineToReport("Líneas añadidas: " + addedLinesCount);
     VersionsComparisonReport.addLineToReport("Líneas eliminadas: " + deletedLinesCount);
     VersionsComparisonReport.addLineToReport("- - - - - - - -");
+  }
+
+  private static List<String> wrapLine(String line, int maxLength) {
+    List<String> result = new ArrayList<>();
+    while (line.length() > maxLength) {
+      result.add(line.substring(0, maxLength));
+      line = line.substring(maxLength);
+    }
+    result.add(line);
+    return result;
   }
 
   private ProjectVersionComparison() {}
