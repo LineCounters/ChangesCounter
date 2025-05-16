@@ -15,6 +15,9 @@ import mx.uady.utils.JavaFilesCollector;
 import mx.uady.utils.LevenshteinDistance;
 
 public class ProjectVersionComparison {
+  private static final double SIMILARITY_THRESHOLD = 0.7;
+  private static final int MAX_LINE_LENGTH = 80;
+
   public static void compareProjectVersions(
       String oldVersionFolderPath, String newVersionFolderPath)
       throws FolderNotFoundException, JavaFilesNotFoundInPathException, IOException {
@@ -50,123 +53,143 @@ public class ProjectVersionComparison {
     VersionsComparisonReport.writeReportToFile("versions_comparison_report.txt");
   }
 
-  static void compareFileVersions(
+  private static void compareFileVersions(
       List<String> oldVersionCodeLines, List<String> newVersionCodeLines) {
+    List<Integer> unchangedOldLines = new ArrayList<>();
+    List<Integer> unchangedNewLines = new ArrayList<>();
 
-    List<String> deletedLines = new ArrayList<>();
-    List<String> addedLines = new ArrayList<>();
-    List<String> unchangedLines = new ArrayList<>();
-
-    List<String> oldLinesList = new ArrayList<>(oldVersionCodeLines);
-    List<String> newLinesList = new ArrayList<>(newVersionCodeLines);
-
-    int minSize = Math.min(oldVersionCodeLines.size(), newVersionCodeLines.size());
-    for (int i = 0; i < minSize; i++) {
+    int minLength = Math.min(oldVersionCodeLines.size(), newVersionCodeLines.size());
+    for (int i = 0; i < minLength; i++) {
       if (oldVersionCodeLines.get(i).equals(newVersionCodeLines.get(i))) {
-        unchangedLines.add(oldVersionCodeLines.get(i));
+        unchangedOldLines.add(i);
+        unchangedNewLines.add(i);
       }
     }
 
-    for (int i = 0; i < oldVersionCodeLines.size(); i++) {
-      String line = oldVersionCodeLines.get(i);
-      if (newLinesList.contains(line)
-          && (i >= newVersionCodeLines.size() || !line.equals(newVersionCodeLines.get(i)))) {
-        deletedLines.add(line);
-      } else if (!newLinesList.contains(line)) {
-        deletedLines.add(line);
+    List<LineMapping> modifiedLines = new ArrayList<>();
+
+    for (int oldIndex = 0; oldIndex < oldVersionCodeLines.size(); oldIndex++) {
+      if (unchangedOldLines.contains(oldIndex)) continue;
+
+      String oldLine = oldVersionCodeLines.get(oldIndex);
+
+      for (int newIndex = 0; newIndex < newVersionCodeLines.size(); newIndex++) {
+        if (unchangedNewLines.contains(newIndex)) continue;
+
+        String newLine = newVersionCodeLines.get(newIndex);
+        double similarity = LevenshteinDistance.calculateSimilarity(oldLine, newLine);
+
+        if (similarity >= SIMILARITY_THRESHOLD && oldIndex == newIndex) {
+          modifiedLines.add(new LineMapping(oldIndex, newIndex, similarity));
+          break;
+        }
       }
     }
 
-    for (int i = 0; i < newVersionCodeLines.size(); i++) {
-      String line = newVersionCodeLines.get(i);
-      if (oldLinesList.contains(line)
-          && (i >= oldVersionCodeLines.size() || !line.equals(oldVersionCodeLines.get(i)))) {
-        addedLines.add(line);
-      } else if (!oldLinesList.contains(line)) {
-        addedLines.add(line);
-      }
-    }
+    addOldFileVersionToReport(oldVersionCodeLines, unchangedOldLines, modifiedLines);
+    addNewFileVersionToReport(newVersionCodeLines, unchangedNewLines, modifiedLines);
 
-    addOldFileVersionToReport(oldVersionCodeLines, deletedLines);
-    addNewFileVersionToReport(oldVersionCodeLines, newVersionCodeLines, addedLines);
-    addSummaryToReport(unchangedLines.size(), addedLines.size(), deletedLines.size());
+    int unchangedCount = unchangedOldLines.size();
+    int deletedCount = oldVersionCodeLines.size() - unchangedOldLines.size() - modifiedLines.size();
+    int addedCount = newVersionCodeLines.size() - unchangedNewLines.size() - modifiedLines.size();
+    int modifiedCount = modifiedLines.size();
+
+    addSummaryToReport(unchangedCount, addedCount, deletedCount, modifiedCount);
   }
 
   private static void addOldFileVersionToReport(
-      List<String> oldVersionCodeLines, List<String> deletedLines) {
+      List<String> oldVersionCodeLines,
+      List<Integer> unchangedLines,
+      List<LineMapping> modifiedLines) {
     VersionsComparisonReport.addLineToReport("=== VERSION ANTERIOR ===");
-    List<String> temporalCopyOfDeletedLines = new ArrayList<>(deletedLines);
 
-    for (String lineInOldVersion : oldVersionCodeLines) {
-      if (temporalCopyOfDeletedLines.contains(lineInOldVersion)) {
-        List<String> wrapped = wrapLine(lineInOldVersion, 80);
-        for (int i = 0; i < wrapped.size(); i++) {
-          String suffix = (i == wrapped.size() - 1) ? " // - [ELIMINADA]" : "";
-          VersionsComparisonReport.addLineToReport(wrapped.get(i) + suffix);
-        }
-        temporalCopyOfDeletedLines.remove(lineInOldVersion);
+    for (int i = 0; i < oldVersionCodeLines.size(); i++) {
+      String line = oldVersionCodeLines.get(i);
+
+      if (unchangedLines.contains(i)) {
+        VersionsComparisonReport.addLineToReport(formatLineForReport(line));
       } else {
-        for (String wrapped : wrapLine(lineInOldVersion, 80)) {
-          VersionsComparisonReport.addLineToReport(wrapped);
+        boolean isModified = false;
+
+        for (LineMapping mapping : modifiedLines) {
+          if (mapping.oldIndex == i) {
+            VersionsComparisonReport.addLineToReport(
+                formatLineForReport(line + " // ≈ [MODIFICADA]"));
+            isModified = true;
+            break;
+          }
+        }
+
+        if (!isModified) {
+          VersionsComparisonReport.addLineToReport(formatLineForReport(line + " // - [BORRADA]"));
         }
       }
     }
   }
 
   private static void addNewFileVersionToReport(
-      List<String> oldVersionCodeLines, List<String> newVersionCodeLines, List<String> addedLines) {
+      List<String> newVersionCodeLines,
+      List<Integer> unchangedLines,
+      List<LineMapping> modifiedLines) {
     VersionsComparisonReport.addLineToReport("=== VERSION ACTUAL ===");
-    List<String> temporalCopyOfAddedLines = new ArrayList<>(addedLines);
 
-    for (String lineInNewVersion : newVersionCodeLines) {
-      if (temporalCopyOfAddedLines.contains(lineInNewVersion)) {
+    for (int i = 0; i < newVersionCodeLines.size(); i++) {
+      String line = newVersionCodeLines.get(i);
+
+      if (unchangedLines.contains(i)) {
+        VersionsComparisonReport.addLineToReport(formatLineForReport(line));
+      } else {
         boolean isModified = false;
 
-        for (String lineInOldVersion : oldVersionCodeLines) {
-          double levenshteinSimilarity =
-              LevenshteinDistance.calculateSimilarity(lineInNewVersion, lineInOldVersion);
-
-          if (levenshteinSimilarity >= 0.7) {
+        for (LineMapping mapping : modifiedLines) {
+          if (mapping.newIndex == i) {
+            VersionsComparisonReport.addLineToReport(
+                formatLineForReport(line + " // ≈ [MODIFICADA]"));
             isModified = true;
             break;
           }
         }
 
-        List<String> wrapped = wrapLine(lineInNewVersion, 80);
-        for (int i = 0; i < wrapped.size(); i++) {
-          String suffix =
-              (i == wrapped.size() - 1)
-                  ? (isModified ? " // ≈ [MODIFICADA]" : " // + [NUEVA]")
-                  : "";
-          VersionsComparisonReport.addLineToReport(wrapped.get(i) + suffix);
-        }
-
-        temporalCopyOfAddedLines.remove(lineInNewVersion);
-      } else {
-        for (String wrapped : wrapLine(lineInNewVersion, 80)) {
-          VersionsComparisonReport.addLineToReport(wrapped);
+        if (!isModified) {
+          VersionsComparisonReport.addLineToReport(formatLineForReport(line + " // + [NUEVA]"));
         }
       }
     }
   }
 
   private static void addSummaryToReport(
-      int unchangedLinesCount, int addedLinesCount, int deletedLinesCount) {
+      int unchangedLinesCount, int addedLinesCount, int deletedLinesCount, int modifiedLinesCount) {
     VersionsComparisonReport.addLineToReport("--- RESUMEN ---");
     VersionsComparisonReport.addLineToReport("Líneas sin cambios: " + unchangedLinesCount);
     VersionsComparisonReport.addLineToReport("Líneas añadidas: " + addedLinesCount);
     VersionsComparisonReport.addLineToReport("Líneas eliminadas: " + deletedLinesCount);
+    VersionsComparisonReport.addLineToReport("Líneas modificadas: " + modifiedLinesCount);
     VersionsComparisonReport.addLineToReport("- - - - - - - -");
   }
 
-  private static List<String> wrapLine(String line, int maxLength) {
-    List<String> result = new ArrayList<>();
-    while (line.length() > maxLength) {
-      result.add(line.substring(0, maxLength));
-      line = line.substring(maxLength);
+  private static String formatLineForReport(String line) {
+    if (line.length() <= MAX_LINE_LENGTH) return line;
+
+    StringBuilder formatted = new StringBuilder();
+    int index = 0;
+    while (index < line.length()) {
+      int end = Math.min(index + MAX_LINE_LENGTH, line.length());
+      formatted.append(line, index, end).append(System.lineSeparator());
+      index = end;
     }
-    result.add(line);
-    return result;
+    return formatted.toString().trim();
+  }
+
+  private static class LineMapping {
+    final int oldIndex;
+    final int newIndex;
+    final double similarity;
+
+    LineMapping(int oldIndex, int newIndex, double similarity) {
+      this.oldIndex = oldIndex;
+      this.newIndex = newIndex;
+      this.similarity = similarity;
+    }
   }
 
   private ProjectVersionComparison() {}
